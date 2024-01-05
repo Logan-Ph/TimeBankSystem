@@ -1,3 +1,5 @@
+// remember whenever reading the data from file, you need to remove all the null pointer of the vector after that
+
 #include "Member.h"
 #include "TimeBankSystem.h"
 #include "Functions.h"
@@ -38,6 +40,7 @@ void Member::read(std::ifstream &ifs)
     skills = readData<std::vector<std::string>>(ifs);
     blockedMembers = readData<std::vector<std::string>>(ifs);
     activities = readVector<Activity>(ifs);
+    activities.erase(std::remove(activities.begin(), activities.end(), nullptr), activities.end()); // remove all the null pointer before write to file
     comments = readData<std::vector<std::string>>(ifs);
 }
 

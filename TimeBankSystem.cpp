@@ -135,7 +135,7 @@ void TimeBankSystem::loginUI()
             std::cout << "Login failed" << std::endl;
             break;
         case 'x':
-            writeUsers(users, "users.bin");
+            writeUsers(getUsers(), "users.bin");
             break;
         default:
             break;
