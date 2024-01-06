@@ -289,7 +289,7 @@ bool Member::listYourSelf()
             }
         }
 
-        Activity *activity = new Activity(startTime, endTime, getId(), _miminumHostRatingScore, consumingPoints);
+        Activity *activity = new Activity(startTime, endTime, getId(), _miminumHostRatingScore, consumingPoints, getSkills());
         activities.push_back(activity);
         return true;
     }
@@ -371,7 +371,8 @@ bool Member::bookService()
         return false;
     }
 
-    activity->addRequester(this->getId());
+    std::string requesterId = getId();
+    activity->addRequester(requesterId);
     std::cout << "Book activity successful" << std::endl;
     return true;
 }
@@ -384,6 +385,11 @@ std::vector<Activity *> Member::getActivities()
 void Member::setActivities(std::vector<Activity *> _activities)
 {
     activities = _activities;
+}
+
+std::vector<std::string> Member::getSkills()
+{
+    return skills;
 }
 
 std::ostream &operator<<(std::ostream &os, Member &user)

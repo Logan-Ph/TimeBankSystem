@@ -97,7 +97,8 @@ T readData(std::ifstream &ifs) // read data from file (used only for POD and non
         ifs.read(reinterpret_cast<char *>(&size), sizeof(size));
         std::vector<char> buffer(size);
         ifs.read(buffer.data(), size);
-        return std::string(buffer.begin(), buffer.end());
+        std::string data = std::string(buffer.begin(), buffer.end());
+        return data;
     }
     else if constexpr ((std::is_same<T, int>::value) || (std::is_same<T, float>::value) || (std::is_same<T, double>::value) || (std::is_same<T, time_t>::value)) // check int, float, double type
     {

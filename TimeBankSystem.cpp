@@ -271,7 +271,9 @@ void TimeBankSystem::memberDisplay(Member *member)
                 auto activities = _member->getActivities();
                 for (Activity *activity : activities)
                 {
-                    if (activity->getHostId().empty())
+                    std::vector<std::string> requesters = activity->getRequesters();
+
+                    if (activity->getHostId().empty() && std::find(requesters.begin(), requesters.end(), member->getId()) == requesters.end())
                     {
                         std::cout << *activity << std::endl;
                     }

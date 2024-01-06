@@ -5,13 +5,13 @@
 
 Activity::Activity()
 {
-    skills = std::vector<std::string>();      // initialize skills
-    requresters = std::vector<std::string>(); // initialize requresters
+    skills = std::vector<std::string>();     // initialize skills
+    requesters = std::vector<std::string>(); // initialize requresters
 }
 
 Activity::~Activity() = default;
 
-Activity::Activity(std::time_t _startTime, std::time_t _endTime, std::string _supporterId, int _minimumHostRatingScore, int _consumingPoint)
+Activity::Activity(std::time_t _startTime, std::time_t _endTime, std::string _supporterId, int _minimumHostRatingScore, int _consumingPoint, std::vector<std::string> _skills)
 {
     id = generateId<Activity>();
     minimumHostRatingScore = _minimumHostRatingScore;
@@ -19,21 +19,21 @@ Activity::Activity(std::time_t _startTime, std::time_t _endTime, std::string _su
     startTime = _startTime;
     endTime = _endTime;
     supporterId = _supporterId;
-    skills = std::vector<std::string>();      // initialize skills
-    requresters = std::vector<std::string>(); // initialize requresters
+    skills = _skills;                        // initialize skills
+    requesters = std::vector<std::string>(); // initialize requresters
 }
 
 bool Activity::addRequester(std::string requesterId)
 {
-    requresters.push_back(requesterId);
+    requesters.push_back(requesterId);
     return true;
 }
 
 bool Activity::acceptRequester(std::string requesterId)
 {
-    requresters.erase(std::remove_if(requresters.begin(), requresters.end(), [&requesterId](std::string &id)
-                                     { return id != requesterId; }),
-                      requresters.end());
+    requesters.erase(std::remove_if(requesters.begin(), requesters.end(), [&requesterId](std::string &id)
+                                    { return id != requesterId; }),
+                     requesters.end());
     return true;
 }
 
@@ -84,7 +84,7 @@ std::vector<std::string> Activity::getSkills()
 
 std::vector<std::string> Activity::getRequesters()
 {
-    return requresters;
+    return requesters;
 }
 
 std::ostream &operator<<(std::ostream &os, Activity &activity)
@@ -98,15 +98,18 @@ std::ostream &operator<<(std::ostream &os, Activity &activity)
     os << "Start time: " << formatTime(activity.getStartTime()) << std::endl;
     os << "End time: " << formatTime(activity.getEndTime()) << std::endl;
     os << "Skills: ";
-    for (auto it = activity.getSkills().begin(); it != activity.getSkills().end(); ++it)
+    auto skills = activity.getSkills();
+    for (std::string skill : skills)
     {
-        os << *it << " ";
+        std::cout << skill << std::endl;
     }
+
     os << std::endl;
     os << "Requesters: ";
-    for (auto it = activity.getRequesters().begin(); it != activity.getRequesters().end(); ++it)
+    auto requesters = activity.getRequesters();
+    for (std::string requesterId : requesters)
     {
-        os << *it << " ";
+        std::cout << requesterId << std::endl;
     }
     os << std::endl;
     return os;
@@ -123,7 +126,7 @@ void Activity::write(std::ofstream &ofs)
     writeData<std::time_t>(ofs, startTime);
     writeData<std::time_t>(ofs, endTime);
     writeData<std::vector<std::string>>(ofs, skills);
-    writeData<std::vector<std::string>>(ofs, requresters);
+    writeData<std::vector<std::string>>(ofs, requesters);
 }
 
 void Activity::read(std::ifstream &ifs)
@@ -137,5 +140,11 @@ void Activity::read(std::ifstream &ifs)
     startTime = readData<std::time_t>(ifs);
     endTime = readData<std::time_t>(ifs);
     skills = readData<std::vector<std::string>>(ifs);
-    requresters = readData<std::vector<std::string>>(ifs);
+    skills.erase(std::remove_if(skills.begin(), skills.end(), [](std::string skill)
+                                { return skill.length() == 0; }),
+                 skills.end());
+    requesters = readData<std::vector<std::string>>(ifs);
+    requesters.erase(std::remove_if(requesters.begin(), requesters.end(), [](std::string &id)
+                                    { return id.length() == 0; }),
+                     requesters.end()); // remove empty data
 }

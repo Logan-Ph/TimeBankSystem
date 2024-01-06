@@ -18,11 +18,11 @@ private:
     std::time_t startTime;
     std::time_t endTime;
     std::vector<std::string> skills;
-    std::vector<std::string> requresters; // id of requesters
+    std::vector<std::string> requesters; // id of requesters
 public:
     Activity();
     ~Activity();
-    Activity(std::time_t startTime, std::time_t endTime, std::string supporterId, int _minimumHostRatingScore, int _consumingPoint);
+    Activity(std::time_t startTime, std::time_t endTime, std::string supporterId, int _minimumHostRatingScore, int _consumingPoint, std::vector<std::string> _skills);
     std::string getId();
     std::string getSupporterId();
     std::string getHostId();

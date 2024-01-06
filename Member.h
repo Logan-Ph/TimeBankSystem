@@ -35,6 +35,7 @@ public:
     int getCreditPoints();
     std::vector<Activity *> getActivities();
     std::vector<std::string> getBlockedMembers();
+    std::vector<std::string> getSkills();
     void setActivities(std::vector<Activity *> _activities);
     void setCreaditPoints(int points);
     bool addCreditPoints(int points);

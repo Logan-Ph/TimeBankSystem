@@ -18,7 +18,9 @@ int main()
     Admin *admin = new Admin("admin", "123");
     Member *member1 = new Member("user1", "123");
     Member *member2 = new Member("user2", "123");
-    std::vector<User *> users = {admin, member1, member2};
+    Member *member3 = new Member("user3", "123");
+    Member *member4 = new Member("user4", "123");
+    std::vector<User *> users = {admin, member1, member2, member3, member4};
     writeUsers(users, "users.bin");
 
     std::vector<User *> newUsers = readUsers("users.bin");
