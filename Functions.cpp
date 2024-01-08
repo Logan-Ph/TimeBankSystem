@@ -100,7 +100,6 @@ std::time_t getTime()
     ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
     if (ss.fail())
     {
-        std::cout << "Failed to parse date and time.\n";
         return std::time_t(-1);
     }
     return std::mktime(&t);

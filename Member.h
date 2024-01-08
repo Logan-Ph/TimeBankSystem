@@ -48,6 +48,13 @@ public:
     bool listYourSelf();
     bool unListYourSelf();
     bool bookService();
+    bool confirmActivity();
+    bool feedbackActivity();
+    bool addCreditPoints();
+    void viewProfile();
+    void viewPendingRequest();
+    void viewOtherUserProfile();
+    void searchServices();
     friend std::ostream &operator<<(std::ostream &os, Member &user);
 };
 

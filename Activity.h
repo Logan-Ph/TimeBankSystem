@@ -22,7 +22,7 @@ private:
 public:
     Activity();
     ~Activity();
-    Activity(std::time_t startTime, std::time_t endTime, std::string supporterId, int _minimumHostRatingScore, int _consumingPoint, std::vector<std::string> _skills);
+    Activity(std::time_t startTime, std::time_t endTime, std::string supporterId, int _minimumHostRatingScore, int _consumingPoint, std::vector<std::string> _skills, std::string _city);
     std::string getId();
     std::string getSupporterId();
     std::string getHostId();

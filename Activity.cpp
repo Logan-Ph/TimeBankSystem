@@ -11,7 +11,7 @@ Activity::Activity()
 
 Activity::~Activity() = default;
 
-Activity::Activity(std::time_t _startTime, std::time_t _endTime, std::string _supporterId, int _minimumHostRatingScore, int _consumingPoint, std::vector<std::string> _skills)
+Activity::Activity(std::time_t _startTime, std::time_t _endTime, std::string _supporterId, int _minimumHostRatingScore, int _consumingPoint, std::vector<std::string> _skills, std::string _city)
 {
     id = generateId<Activity>();
     minimumHostRatingScore = _minimumHostRatingScore;
@@ -21,6 +21,7 @@ Activity::Activity(std::time_t _startTime, std::time_t _endTime, std::string _su
     supporterId = _supporterId;
     skills = _skills;                        // initialize skills
     requesters = std::vector<std::string>(); // initialize requresters
+    city = _city;
 }
 
 bool Activity::addRequester(std::string requesterId)
@@ -34,6 +35,7 @@ bool Activity::acceptRequester(std::string requesterId)
     requesters.erase(std::remove_if(requesters.begin(), requesters.end(), [&requesterId](std::string &id)
                                     { return id != requesterId; }),
                      requesters.end());
+    hostId = requesterId;
     return true;
 }
 
@@ -94,22 +96,22 @@ std::ostream &operator<<(std::ostream &os, Activity &activity)
     os << "Host id: " << activity.getHostId() << std::endl;
     os << "City: " << activity.getCity() << std::endl;
     os << "Consuming point: " << activity.getConsumingPoint() << std::endl;
-    os << "Minimum host rating score: " << activity.getConsumingPoint() << std::endl;
+    os << "Minimum host rating score: " << activity.getMinimumHostRatingScore() << std::endl;
     os << "Start time: " << formatTime(activity.getStartTime()) << std::endl;
     os << "End time: " << formatTime(activity.getEndTime()) << std::endl;
-    os << "Skills: ";
+    os << "Skills: " << std::endl;
     auto skills = activity.getSkills();
     for (std::string skill : skills)
     {
-        std::cout << skill << std::endl;
+        std::cout << "\t" << skill << std::endl;
     }
 
     os << std::endl;
-    os << "Requesters: ";
+    os << "Requesters: " << std::endl;
     auto requesters = activity.getRequesters();
     for (std::string requesterId : requesters)
     {
-        std::cout << requesterId << std::endl;
+        std::cout << "\t" << requesterId << std::endl;
     }
     os << std::endl;
     return os;

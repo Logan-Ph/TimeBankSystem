@@ -209,94 +209,127 @@ void TimeBankSystem::adminDisplay(Admin *admin)
 
 void TimeBankSystem::memberDisplay(Member *member)
 {
+
     std::string choice;
     while (choice != "x")
     {
-        std::cout << "\n----- Member Display -----" << std::endl;
-        std::cout << "1. List yourself" << std::endl;
-        std::cout << "2. Unlist yourself" << std::endl;
-        std::cout << "3. Book a service" << std::endl;
-        std::cout << "4. Confirm activity" << std::endl;
-        std::cout << "5. Search services" << std::endl;
-        std::cout << "6. Preview your skill" << std::endl;
-        std::cout << "7. Block members" << std::endl;
-        std::cout << "8. Unblock members" << std::endl;
-        std::cout << "x. Exit" << std::endl;
-        std::cout << "Please enter your choice: ";
-        std::getline(std::cin, choice);
-        std::cout << std::endl;
-        if (choice.length() != 1)
+        try
         {
-            std::cout << std::endl
-                      << "Please enter a valid choice" << std::endl;
-            continue;
-        }
-        switch (choice.at(0))
-        {
-        case '1':
-            if (member->listYourSelf())
+            std::cout << "\n----- Member Display -----" << std::endl;
+            std::cout << "1. List yourself" << std::endl;
+            std::cout << "2. Unlist yourself" << std::endl;
+            std::cout << "3. Book a service" << std::endl;
+            std::cout << "4. Confirm activity" << std::endl;
+            std::cout << "5. Search services" << std::endl;
+            std::cout << "6. View your profile" << std::endl;
+            std::cout << "7. Feedback on previous activity" << std::endl;
+            std::cout << "8. Add more credit points" << std::endl;
+            std::cout << "9. Block members" << std::endl;
+            std::cout << "10. Unblock members" << std::endl;
+            std::cout << "11. View your pending request" << std::endl;
+            std::cout << "12. View other user profile" << std::endl;
+            std::cout << "x. Exit" << std::endl;
+            std::cout << "Please enter your choice: ";
+            std::getline(std::cin, choice);
+            std::cout << std::endl;
+            if (choice.length() != 1)
             {
-                std::cout << "List yourself successful" << std::endl;
+                std::cout << std::endl
+                          << "Please enter a valid choice" << std::endl;
+                continue;
             }
-            else
+            if (choice == "x")
             {
-                std::cout << "List yourself failed" << std::endl;
+                break;
             }
-            break;
-        case '2':
-            for (Activity *activity : member->getActivities())
+            switch (std::stoi(choice))
             {
-                std::cout << *activity << std::endl;
-            }
-            member->unListYourSelf();
-            break;
-        case '3':
-            for (User *user : getUsers())
-            {
-                if (dynamic_cast<Admin *>(user) != nullptr)
+            case 1:
+                if (member->listYourSelf())
                 {
-                    continue;
+                    std::cout << "List yourself successful" << std::endl;
                 }
-                Member *_member = dynamic_cast<Member *>(user);
-                if (member->getId() == _member->getId())
+                else
                 {
-                    continue;
+                    std::cout << "List yourself failed" << std::endl;
                 }
-                auto it = std::find(member->getBlockedMembers().begin(), member->getBlockedMembers().end(), _member->getId());
-                if (it != member->getBlockedMembers().end())
+                break;
+            case 2:
+                for (Activity *activity : member->getActivities())
                 {
-                    continue;
-                }
-
-                auto activities = _member->getActivities();
-                for (Activity *activity : activities)
-                {
-                    std::vector<std::string> requesters = activity->getRequesters();
-
-                    if (activity->getHostId().empty() && std::find(requesters.begin(), requesters.end(), member->getId()) == requesters.end())
+                    if (activity->getHostId().empty())
                     {
                         std::cout << *activity << std::endl;
                     }
                 }
+                member->unListYourSelf();
+                break;
+            case 3:
+                for (User *user : getUsers())
+                {
+                    if (dynamic_cast<Admin *>(user) != nullptr)
+                    {
+                        continue;
+                    }
+                    Member *_member = dynamic_cast<Member *>(user);
+                    if (member->getId() == _member->getId())
+                    {
+                        continue;
+                    }
+                    auto it = std::find(member->getBlockedMembers().begin(), member->getBlockedMembers().end(), _member->getId());
+                    if (it != member->getBlockedMembers().end())
+                    {
+                        continue;
+                    }
+
+                    auto activities = _member->getActivities();
+                    for (Activity *activity : activities)
+                    {
+                        std::vector<std::string> requesters = activity->getRequesters();
+
+                        if (activity->getHostId().empty() && std::find(requesters.begin(), requesters.end(), member->getId()) == requesters.end())
+                        {
+                            std::cout << *activity << std::endl;
+                        }
+                    }
+                }
+                member->bookService();
+                break;
+            case 4:
+                member->confirmActivity();
+                break;
+            case 5:
+                member->searchServices();
+                break;
+            case 6:
+                member->viewProfile();
+                break;
+            case 7:
+                member->feedbackActivity();
+                break;
+            case 8:
+                member->addCreditPoints();
+                break;
+            case 9:
+                member->blockMember();
+                break;
+            case 10:
+                member->unBlockMember();
+                break;
+            case 11:
+                member->viewPendingRequest();
+                break;
+            case 12:
+                member->viewOtherUserProfile();
+                break;
+            default:
+                break;
             }
-            member->bookService();
-            break;
-        case '4':
-            // member->confirmActivity();
-            break;
-        case '5':
-            break;
-        case '6':
-            break;
-        case '7':
-            member->blockMember();
-            break;
-        case '8':
-            member->unBlockMember();
-            break;
-        case 'x':
-        default:
-            break;
+        }
+        catch (std::exception &e)
+        {
+            std::cout << "Please enter a valid choice" << std::endl;
+            continue;
         }
     }
 }
