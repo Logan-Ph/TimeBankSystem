@@ -167,6 +167,29 @@ void TimeBankSystem::guestDisplay()
             registerUser();
             break;
         case '2':
+            for (auto user : getUsers())
+            {
+                if (dynamic_cast<Admin *>(user) != nullptr)
+                {
+                    continue;
+                }
+                Member *member = dynamic_cast<Member *>(user);
+                std::cout << "----------------------------------" << std::endl;
+                std::cout << "Username: " << member->getUserName() << std::endl;
+                std::cout << "Full name: " << (member->getUserInfo())["fullName"] << std::endl;
+                std::cout << "Phone number: " << (member->getUserInfo())["phoneNumber"] << std::endl;
+                std::cout << "Email: " << (member->getUserInfo())["email"] << std::endl;
+                std::cout << "City: " << (member->getUserInfo())["city"] << std::endl;
+                std::cout << "Skills: " << std::endl;
+                for (auto skill : member->getSkills())
+                {
+                    if (!skill.empty())
+                    {
+                        std::cout << "\t" << skill << std::endl;
+                    }
+                }
+                std::cout << "----------------------------------" << std::endl;
+            }
         case 'x':
         default:
             break;
@@ -232,12 +255,6 @@ void TimeBankSystem::memberDisplay(Member *member)
             std::cout << "Please enter your choice: ";
             std::getline(std::cin, choice);
             std::cout << std::endl;
-            if (choice.length() != 1)
-            {
-                std::cout << std::endl
-                          << "Please enter a valid choice" << std::endl;
-                continue;
-            }
             if (choice == "x")
             {
                 break;
@@ -265,34 +282,6 @@ void TimeBankSystem::memberDisplay(Member *member)
                 member->unListYourSelf();
                 break;
             case 3:
-                for (User *user : getUsers())
-                {
-                    if (dynamic_cast<Admin *>(user) != nullptr)
-                    {
-                        continue;
-                    }
-                    Member *_member = dynamic_cast<Member *>(user);
-                    if (member->getId() == _member->getId())
-                    {
-                        continue;
-                    }
-                    auto it = std::find(member->getBlockedMembers().begin(), member->getBlockedMembers().end(), _member->getId());
-                    if (it != member->getBlockedMembers().end())
-                    {
-                        continue;
-                    }
-
-                    auto activities = _member->getActivities();
-                    for (Activity *activity : activities)
-                    {
-                        std::vector<std::string> requesters = activity->getRequesters();
-
-                        if (activity->getHostId().empty() && std::find(requesters.begin(), requesters.end(), member->getId()) == requesters.end())
-                        {
-                            std::cout << *activity << std::endl;
-                        }
-                    }
-                }
                 member->bookService();
                 break;
             case 4:
@@ -323,6 +312,7 @@ void TimeBankSystem::memberDisplay(Member *member)
                 member->viewOtherUserProfile();
                 break;
             default:
+                std::cout << "Please enter a valid choice" << std::endl;
                 break;
             }
         }
