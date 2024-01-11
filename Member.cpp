@@ -301,6 +301,11 @@ bool Member::listYourSelf()
 
 bool Member::unListYourSelf()
 {
+    if (activities.empty())
+    {
+        std::cout << "You have not listed any activity" << std::endl;
+        return false;
+    }
     std::string id;
     std::cout << "Please enter the id of the activity you want to unlist: ";
     std::getline(std::cin, id);
@@ -425,6 +430,11 @@ void Member::addActivity(Activity *activity)
 
 bool Member::confirmActivity()
 {
+    if (getActivities().empty())
+    {
+        std::cout << "You have not listed any activity" << std::endl;
+        return false;
+    }
     for (auto &activity : getActivities())
     {
         if (activity->getHostId().empty())
@@ -482,6 +492,12 @@ bool Member::feedbackActivity()
         {
             supportActivites.push_back(activity);
         }
+    }
+
+    if (hostActivities.empty() && supportActivites.empty())
+    {
+        std::cout << "You have not participated in any activity" << std::endl;
+        return false;
     }
 
     std::cout << "Activities as Host: " << std::endl;
@@ -624,10 +640,14 @@ void Member::viewProfile()
     std::cout << "Phone number: " << userInfo["phoneNumber"] << std::endl;
     std::cout << "Email: " << userInfo["email"] << std::endl;
     std::cout << "City: " << userInfo["city"] << std::endl;
-    std::cout << "Skills: ";
+    std::cout << "Skills: " << std::endl;
     for (auto skill : skills)
     {
-        std::cout << "\t" << skill << std::endl;
+        if (!skill.empty())
+        {
+            std::cout << "\t"
+                      << "-" << skill << std::endl;
+        }
     }
     std::cout << "Credit points: " << creditPoints << std::endl;
     std::cout << "Skill rating score: " << skillRatingScore->getRatingScore() << std::endl;
@@ -636,7 +656,11 @@ void Member::viewProfile()
     std::cout << "Blocked members: " << std::endl;
     for (auto blockedMember : blockedMembers)
     {
-        std::cout << "\t" << blockedMember << std::endl;
+        if (!blockedMember.empty())
+        {
+            std::cout << "\t"
+                      << "-" << blockedMember << std::endl;
+        }
     }
     std::cout << "Activities: " << std::endl;
     for (auto activity : activities)
@@ -646,7 +670,11 @@ void Member::viewProfile()
     std::cout << "Comments: " << std::endl;
     for (auto comment : comments)
     {
-        std::cout << "\t" << comment << std::endl;
+        if (!comment.empty())
+        {
+            std::cout << "\t"
+                      << "-" << comment << std::endl;
+        }
     }
 }
 
@@ -768,7 +796,8 @@ std::vector<std::string> Member::getSkills()
     return skills;
 }
 
-std::map<std::string, std::string> Member::getUserInfo(){
+std::map<std::string, std::string> Member::getUserInfo()
+{
     return userInfo;
 }
 
