@@ -37,10 +37,19 @@ void Member::read(std::ifstream &ifs)
     userInfo["email"] = readData<std::string>(ifs);
     userInfo["city"] = readData<std::string>(ifs);
     skills = readData<std::vector<std::string>>(ifs);
+    skills.erase(std::remove_if(skills.begin(), skills.end(), [](std::string str)
+                                { return str.empty(); }),
+                 skills.end()); // remove all the empty string before write to file
     blockedMembers = readData<std::vector<std::string>>(ifs);
+    blockedMembers.erase(std::remove_if(blockedMembers.begin(), blockedMembers.end(), [](std::string str)
+                                        { return str.empty(); }),
+                         blockedMembers.end()); // remove all the empty string before write to file
     activities = readVector<Activity>(ifs);
     activities.erase(std::remove(activities.begin(), activities.end(), nullptr), activities.end()); // remove all the null pointer before write to file
     comments = readData<std::vector<std::string>>(ifs);
+    comments.erase(std::remove_if(comments.begin(), comments.end(), [](std::string str)
+                                  { return str.empty(); }),
+                   comments.end()); // remove all the empty string before write to file
 }
 
 void Member::write(std::ofstream &ofs)
@@ -643,11 +652,8 @@ void Member::viewProfile()
     std::cout << "Skills: " << std::endl;
     for (auto skill : skills)
     {
-        if (!skill.empty())
-        {
-            std::cout << "\t"
-                      << "-" << skill << std::endl;
-        }
+        std::cout << "\t"
+                  << "-" << skill << std::endl;
     }
     std::cout << "Credit points: " << creditPoints << std::endl;
     std::cout << "Skill rating score: " << skillRatingScore->getRatingScore() << std::endl;
@@ -656,11 +662,8 @@ void Member::viewProfile()
     std::cout << "Blocked members: " << std::endl;
     for (auto blockedMember : blockedMembers)
     {
-        if (!blockedMember.empty())
-        {
-            std::cout << "\t"
-                      << "-" << blockedMember << std::endl;
-        }
+        std::cout << "\t"
+                  << "-" << blockedMember << std::endl;
     }
     std::cout << "Activities: " << std::endl;
     for (auto activity : activities)
@@ -670,11 +673,8 @@ void Member::viewProfile()
     std::cout << "Comments: " << std::endl;
     for (auto comment : comments)
     {
-        if (!comment.empty())
-        {
-            std::cout << "\t"
-                      << "-" << comment << std::endl;
-        }
+        std::cout << "\t"
+                  << "-" << comment << std::endl;
     }
 }
 
