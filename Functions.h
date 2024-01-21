@@ -4,6 +4,7 @@
 #include "User.h"
 #include "Activity.h"
 #include <string>
+#include <algorithm>
 #include <vector>
 #include <iostream>
 #include <type_traits>
@@ -17,7 +18,7 @@ std::vector<User *> readUsers(std::string fileName); // read all users from file
 template <typename T> // read all vector of pointers of complex objects from file
 std::vector<T *> readVector(std::ifstream &ifs)
 {
-    size_t dataVecSize;                                                    // size of the vector
+    int dataVecSize;                                                       // size of the vector
     ifs.read(reinterpret_cast<char *>(&dataVecSize), sizeof(dataVecSize)); // read the size of the vector
     std::vector<T *> dataVec(dataVecSize);                                 // vector of pointers to T objects
     for (size_t i = 0; i < dataVecSize; i++)
@@ -38,8 +39,9 @@ bool writeVector(std::ofstream &ofs, std::vector<T *> dataVec)
 {
     try
     {
-        size_t dataVecSize = dataVec.size();                                          // size of the vector
-        ofs.write(reinterpret_cast<const char *>(&dataVecSize), sizeof(dataVecSize)); // write the size of vector to file
+        dataVec.erase(std::remove(dataVec.begin(), dataVec.end(), nullptr), dataVec.end()); // remove all the null pointer before write to file
+        int dataVecSize = dataVec.size();                                                   // size of the vector
+        ofs.write(reinterpret_cast<const char *>(&dataVecSize), sizeof(dataVecSize));       // write the size of vector to file
         for (auto it = dataVec.begin(); it != dataVec.end(); ++it)
         {
             (*it)->write(ofs); // write data to file
@@ -95,7 +97,8 @@ T readData(std::ifstream &ifs) // read data from file (used only for POD and non
         ifs.read(reinterpret_cast<char *>(&size), sizeof(size));
         std::vector<char> buffer(size);
         ifs.read(buffer.data(), size);
-        return std::string(buffer.begin(), buffer.end());
+        std::string data = std::string(buffer.begin(), buffer.end());
+        return data;
     }
     else if constexpr ((std::is_same<T, int>::value) || (std::is_same<T, float>::value) || (std::is_same<T, double>::value) || (std::is_same<T, time_t>::value)) // check int, float, double type
     {
@@ -132,6 +135,9 @@ void writeData(std::ofstream &ofs, T data) // write data to file (used only for 
     }
     else if constexpr (std::is_same<T, std::vector<std::string>>::value) // check vector of string type
     {
+        data.erase(std::remove_if(data.begin(), data.end(), [](auto &innerVec)
+                                  { return innerVec.size() == 0; }),
+                   data.end()); // remove empty data
         int size = data.size();
         ofs.write(reinterpret_cast<const char *>(&size), sizeof(size));
         for (auto it : data)

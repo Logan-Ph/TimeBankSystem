@@ -1,3 +1,5 @@
+// remember whenever reading the data from file, you need to remove all the null pointer of the vector after that
+
 #include "Member.h"
 #include "TimeBankSystem.h"
 #include "Functions.h"
@@ -6,10 +8,10 @@
 #include <set>
 #include <ctime>
 #include <unordered_map>
+#include <regex>
 
 Member::Member()
 {
-    creditPoints = 20;
     userInfo = std::map<std::string, std::string>();
     blockedMembers = std::vector<std::string>();
     skills = std::vector<std::string>();
@@ -34,11 +36,21 @@ void Member::read(std::ifstream &ifs)
     userInfo["fullName"] = readData<std::string>(ifs);
     userInfo["phoneNumber"] = readData<std::string>(ifs);
     userInfo["email"] = readData<std::string>(ifs);
-    userInfo["address"] = readData<std::string>(ifs);
+    userInfo["city"] = readData<std::string>(ifs);
     skills = readData<std::vector<std::string>>(ifs);
+    skills.erase(std::remove_if(skills.begin(), skills.end(), [](std::string str)
+                                { return str.empty(); }),
+                 skills.end()); // remove all the empty string before write to file
     blockedMembers = readData<std::vector<std::string>>(ifs);
+    blockedMembers.erase(std::remove_if(blockedMembers.begin(), blockedMembers.end(), [](std::string str)
+                                        { return str.empty(); }),
+                         blockedMembers.end()); // remove all the empty string before write to file
     activities = readVector<Activity>(ifs);
+    activities.erase(std::remove(activities.begin(), activities.end(), nullptr), activities.end()); // remove all the null pointer before write to file
     comments = readData<std::vector<std::string>>(ifs);
+    comments.erase(std::remove_if(comments.begin(), comments.end(), [](std::string str)
+                                  { return str.empty(); }),
+                   comments.end()); // remove all the empty string before write to file
 }
 
 void Member::write(std::ofstream &ofs)
@@ -53,7 +65,7 @@ void Member::write(std::ofstream &ofs)
     writeData<std::string>(ofs, userInfo["fullName"]);
     writeData<std::string>(ofs, userInfo["phoneNumber"]);
     writeData<std::string>(ofs, userInfo["email"]);
-    writeData<std::string>(ofs, userInfo["address"]);
+    writeData<std::string>(ofs, userInfo["city"]);
     writeData<std::vector<std::string>>(ofs, skills);
     writeData<std::vector<std::string>>(ofs, blockedMembers);
     writeVector<Activity>(ofs, activities);
@@ -62,6 +74,7 @@ void Member::write(std::ofstream &ofs)
 
 Member::Member(std::string _userName, std::string _pasword) : User(_userName, _pasword)
 {
+    creditPoints = 20;
     comments = std::vector<std::string>();
     activities = std::vector<Activity *>();
     userInfo = std::map<std::string, std::string>();
@@ -76,8 +89,16 @@ Member::Member(std::string _userName, std::string _pasword) : User(_userName, _p
     std::getline(std::cin, userInfo["phoneNumber"]);
     std::cout << "Please enter your email: ";
     std::getline(std::cin, userInfo["email"]);
-    std::cout << "Please enter your address: ";
-    std::getline(std::cin, userInfo["address"]);
+    std::cout << "Please enter your city 'Ha Noi' or 'Sai Gon' only: ";
+    std::string city;
+    std::getline(std::cin, city);
+    while (city != "Ha Noi" && city != "Sai Gon")
+    {
+        std::cout << "Invalid city" << std::endl;
+        std::cout << "Please enter your city 'Ha Noi' or 'Sai Gon' only: ";
+        std::getline(std::cin, city);
+    }
+    userInfo["city"] = city;
     while (true)
     {
         std::cout << "\nPlease enter your skill or type 'x' to finish: ";
@@ -195,19 +216,20 @@ bool Member::blockMember()
 
 bool Member::unBlockMember()
 {
-    if (blockedMembers.empty())
+
+    if (blockedMembers.empty() || blockedMembers.size() == 0)
     {
         std::cout << "You have not blocked any member" << std::endl;
         return false;
     }
 
     std::unordered_map<std::string, Member *> blockedMembersMap;
-    for (auto &blockedMember : blockedMembers)
+    for (std::string blockedMember : blockedMembers)
     {
         auto users = TimeBankSystem::getUsers(); // get all users
         auto it = std::find_if(users.begin(), users.end(), [blockedMember](User *user)
                                { return user->getId() == blockedMember; });
-        if (it != TimeBankSystem::getUsers().end())
+        if (it != users.end())
         {
             Member *member = dynamic_cast<Member *>(*it);
             blockedMembersMap[blockedMember] = member;
@@ -219,7 +241,6 @@ bool Member::unBlockMember()
     {
         std::cout << "Username: " << pair.second->getUserName() << ", ID: " << pair.second->getId() << std::endl;
     }
-
     std::string unBlockUserId;
     std::cout << "Please enter the id of the member you want to unblock: ";
     std::getline(std::cin, unBlockUserId);
@@ -241,8 +262,16 @@ bool Member::listYourSelf()
         int _miminumHostRatingScore;
         int consumingPoints;
         std::cout << "Please enter the minimum host rating score: ";
-        std::cin >> _miminumHostRatingScore; // get minimum host rating score
-        std::cin.ignore(1, '\n');            // ignore the new line character
+        try
+        {
+            std::string _miminumHostRatingScoreStr;
+            std::getline(std::cin, _miminumHostRatingScoreStr);
+            _miminumHostRatingScore = std::stoi(_miminumHostRatingScoreStr);
+        }
+        catch (std::exception &error)
+        {
+            throw std::invalid_argument("Invalid rating score");
+        }
         if (_miminumHostRatingScore < 0 || _miminumHostRatingScore > 5)
         {
             throw std::invalid_argument("Invalid rating score");
@@ -270,12 +299,12 @@ bool Member::listYourSelf()
 
         if (startTime >= endTime)
         {
-            throw std::invalid_argument("Start time must be earlier than end time");
+            throw std::invalid_argument("End time must be greater than start time");
         }
 
         if (startTime < getCurrentTime())
         {
-            throw std::invalid_argument("Start time must be later than current time");
+            throw std::invalid_argument("Start time must be greater than current time");
         }
 
         for (Activity *activity : activities)
@@ -285,8 +314,7 @@ bool Member::listYourSelf()
                 throw std::invalid_argument("You have another activity at this time");
             }
         }
-
-        Activity *activity = new Activity(startTime, endTime, getId(), _miminumHostRatingScore, consumingPoints);
+        Activity *activity = new Activity(userInfo["fullName"], startTime, endTime, getId(), _miminumHostRatingScore, consumingPoints, getSkills(), userInfo["city"]);
         activities.push_back(activity);
         return true;
     }
@@ -299,6 +327,11 @@ bool Member::listYourSelf()
 
 bool Member::unListYourSelf()
 {
+    if (activities.empty())
+    {
+        std::cout << "You have not listed any activity" << std::endl;
+        return false;
+    }
     std::string id;
     std::cout << "Please enter the id of the activity you want to unlist: ";
     std::getline(std::cin, id);
@@ -328,6 +361,34 @@ std::vector<std::string> Member::getBlockedMembers()
 
 bool Member::bookService()
 {
+    for (User *user : TimeBankSystem::getUsers())
+    {
+        if (dynamic_cast<Admin *>(user) != nullptr)
+        {
+            continue;
+        }
+        Member *_member = dynamic_cast<Member *>(user);
+        if (getId() == _member->getId())
+        {
+            continue;
+        }
+        auto it = std::find(getBlockedMembers().begin(), getBlockedMembers().end(), _member->getId());
+        if (it != getBlockedMembers().end())
+        {
+            continue;
+        }
+
+        auto activities = _member->getActivities();
+        for (Activity *activity : activities)
+        {
+            std::vector<std::string> requesters = activity->getRequesters();
+
+            if (activity->getHostId().empty() && std::find(requesters.begin(), requesters.end(), getId()) == requesters.end() && activity->getMinimumHostRatingScore() <= getHostRatingScore())
+            {
+                std::cout << *activity << std::endl;
+            }
+        }
+    }
     std::string id;
     std::cout << "Please enter the id of the activity you want to book: ";
     std::getline(std::cin, id);
@@ -368,9 +429,464 @@ bool Member::bookService()
         return false;
     }
 
-    activity->addRequester(this->getId());
+    if (activity->getConsumingPoint() > getCreditPoints())
+    {
+        std::cout << "You do not have enough credit points to book this activity" << std::endl;
+        std::cout << "Book activity failed" << std::endl;
+        return false;
+    }
+
+    if (activity->getMinimumHostRatingScore() > getHostRatingScore())
+    {
+        std::cout << "Your host rating score is not enough to book this activity" << std::endl;
+        std::cout << "Book activity failed" << std::endl;
+        return false;
+    }
+
+    std::string requesterId = getId();
+    activity->addRequester(requesterId);
     std::cout << "Book activity successful" << std::endl;
     return true;
+}
+
+void Member::addActivity(Activity *activity)
+{
+    activities.push_back(activity);
+}
+
+bool Member::confirmActivity()
+{
+    if (getActivities().empty())
+    {
+        std::cout << "You have not listed any activity" << std::endl;
+        return false;
+    }
+    for (auto &activity : getActivities())
+    {
+        if (activity->getHostId().empty())
+        {
+            std::cout << *activity << std::endl;
+        }
+    }
+    std::string id;
+    std::cout << "Please enter the id of the activity you want to confirm: ";
+    std::getline(std::cin, id);
+
+    Activity *activity = nullptr;
+    auto it = std::find_if(activities.begin(), activities.end(), [&id](Activity *activity)
+                           { return activity->getId() == id; });
+    if (it == activities.end())
+    {
+        std::cout << "Activity not found" << std::endl;
+        std::cout << "Confirm activity failed" << std::endl;
+        return false;
+    }
+
+    activity = *it;
+    std::cout << "Please enter the id of the member you want to confirm: ";
+    std::string requesterId;
+    std::getline(std::cin, requesterId);
+    auto host = dynamic_cast<Member *>(findUserById(requesterId, TimeBankSystem::getUsers()));
+    if (host != nullptr)
+    {
+        host->setCreaditPoints(host->getCreditPoints() - activity->getConsumingPoint());
+        activity->setHostName(host->getUserInfo()["fullName"]);
+        host->addActivity(activity);
+    }
+    else
+    {
+        std::cout << "Requester id not found" << std::endl;
+        std::cout << "Confirm activity failed" << std::endl;
+        return false;
+    }
+    activity->acceptRequester(requesterId);
+    setCreaditPoints(getCreditPoints() + activity->getConsumingPoint());
+
+    std::cout << "Confirm activity successful" << std::endl;
+    return true;
+}
+
+bool Member::feedbackActivity()
+{
+    std::vector<Activity *> hostActivities = std::vector<Activity *>();
+    std::vector<Activity *> supportActivites = std::vector<Activity *>();
+
+    for (auto *activity : getActivities())
+    {
+        if (activity->isActivityClosed() == 0 && activity->getHostId() == getId())
+        {
+            hostActivities.push_back(activity);
+        }
+        else if (activity->isActivityClosed() == 0 && activity->getSupporterId() == getId())
+        {
+            supportActivites.push_back(activity);
+        }
+    }
+
+    if (hostActivities.empty() && supportActivites.empty())
+    {
+        std::cout << "You have not participated in any activity" << std::endl;
+        return false;
+    }
+
+    std::cout << "Activities as Host: " << std::endl;
+    for (auto *activity : hostActivities)
+    {
+        std::cout << "----------------------" << std::endl;
+        std::cout << *activity << std::endl;
+    }
+    std::cout << "----------------------" << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << "Activities as Supporter: " << std::endl;
+    for (auto *activity : supportActivites)
+    {
+        std::cout << "----------------------" << std::endl;
+        std::cout << *activity << std::endl;
+    }
+    std::cout << "----------------------" << std::endl;
+
+    std::string id;
+    std::cout << "Please enter the id of the activity you want to feedback: ";
+    std::getline(std::cin, id);
+
+    Activity *activity = nullptr;
+    auto it = std::find_if(activities.begin(), activities.end(), [&id](Activity *activity)
+                           { return activity->getId() == id; });
+    if (it == activities.end())
+    {
+        std::cout << "Activity not found" << std::endl;
+        std::cout << "Feedback activity failed" << std::endl;
+        return false;
+    }
+
+    activity = *it;
+
+    if (activity->getEndTime() > getCurrentTime())
+    {
+        std::cout << "You cannot feedback this activity. This activity hasn't ended yet!" << std::endl;
+        std::cout << "Feedback activity failed" << std::endl;
+        return false;
+    }
+
+    Member *member = nullptr;
+    if (activity->getHostId() == getId())
+    {
+        member = dynamic_cast<Member *>(findUserById(activity->getSupporterId(), TimeBankSystem::getUsers()));
+    }
+    else
+    {
+        member = dynamic_cast<Member *>(findUserById(activity->getHostId(), TimeBankSystem::getUsers()));
+    }
+
+    if (member == nullptr)
+    {
+        std::cout << "Member not found" << std::endl;
+        std::cout << "Feedback activity failed" << std::endl;
+        return false;
+    }
+    std::string comment;
+    std::cout << "Please enter your comment: ";
+    std::getline(std::cin, comment);
+    member->comments.push_back(comment);
+    if (member->getId() == activity->getHostId())
+    {
+        try
+        {
+            std::cout << "Please enter the rating score for the host: ";
+            std::string ratingScore;
+            std::getline(std::cin, ratingScore);
+            int _ratingScore = std::stoi(ratingScore);
+            if (_ratingScore < 0 || _ratingScore > 5)
+            {
+                throw std::invalid_argument("Invalid rating score");
+            }
+            member->addHostRatingScore(_ratingScore);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+            std::cout << "Feedback activity failed" << std::endl;
+            return false;
+        }
+    }
+    else
+    {
+        try
+        {
+            std::cout << "Please enter the rating supporter rating score for the supporter: ";
+            std::string ratingScore;
+            std::getline(std::cin, ratingScore);
+            int supporterRatingScore = std::stoi(ratingScore);
+            if (supporterRatingScore < 0 || supporterRatingScore > 5)
+            {
+                throw std::invalid_argument("Invalid rating score");
+            }
+            member->addSupportRatingScore(supporterRatingScore);
+            std::cout << "Please enter the skill rating score for the supporter: ";
+            std::getline(std::cin, ratingScore);
+            int skillRatingScore = std::stoi(ratingScore);
+            if (skillRatingScore < 0 || skillRatingScore > 5)
+            {
+                throw std::invalid_argument("Invalid rating score");
+            }
+            member->addSkillRatingScore(skillRatingScore);
+        }
+        catch (std::exception &e)
+        {
+            std::cout << e.what() << std::endl;
+            std::cout << "Feedback activity failed" << std::endl;
+            return false;
+        }
+    }
+    activity->closeActivity();
+    std::cout << "Feedback activity successful" << std::endl;
+    return true;
+}
+
+bool Member::addCreditPoints()
+{
+    std::string points;
+    std::cout << "Your current credit points: " << creditPoints << std::endl; // print current credit points
+    std::cout << "Please enter the number of credit points you want to add (1 point/$): ";
+    std::getline(std::cin, points);
+    try
+    {
+        int _points = std::stoi(points);
+        if (_points < 0)
+        {
+            throw std::invalid_argument("Invalid credit points");
+        }
+        creditPoints += _points;
+        std::cout << "Add credit points successful" << std::endl;
+        std::cout << "Your current credit points: " << creditPoints << std::endl; // print current credit points
+        return true;
+    }
+    catch (std::invalid_argument &e)
+    {
+        std::cout << e.what() << std::endl;
+        std::cout << "Add credit points failed" << std::endl;
+        return false;
+    }
+}
+
+void Member::viewProfile()
+{
+    std::cout << "Username: " << getUserName() << std::endl;
+    std::cout << "Full name: " << userInfo["fullName"] << std::endl;
+    std::cout << "Phone number: " << userInfo["phoneNumber"] << std::endl;
+    std::cout << "Email: " << userInfo["email"] << std::endl;
+    std::cout << "City: " << userInfo["city"] << std::endl;
+    std::cout << "Skills: " << std::endl;
+    for (auto skill : skills)
+    {
+        std::cout << "\t"
+                  << "-" << skill << std::endl;
+    }
+    std::cout << "Credit points: " << creditPoints << std::endl;
+    std::cout << "Skill rating score: " << skillRatingScore->getRatingScore() << std::endl;
+    std::cout << "Host rating score: " << hostRatingScore->getRatingScore() << std::endl;
+    std::cout << "Support rating score: " << supportRatingScore->getRatingScore() << std::endl;
+    std::cout << "Blocked members: " << std::endl;
+    for (auto blockedMember : blockedMembers)
+    {
+        std::cout << "\t"
+                  << "-" << blockedMember << std::endl;
+    }
+    std::cout << "Activities: " << std::endl;
+    for (auto activity : activities)
+    {
+        std::cout << "----------------------" << std::endl;
+        std::cout << "\t" << *activity << std::endl;
+        std::cout << "----------------------" << std::endl;
+    }
+    std::cout << "Comments: " << std::endl;
+    for (auto comment : comments)
+    {
+        std::cout << "\t"
+                  << "-" << comment << std::endl;
+    }
+}
+
+void Member::viewPendingRequest()
+{
+    std::vector<Activity *> hostActivities = std::vector<Activity *>();
+    std::vector<Activity *> supportActivites = std::vector<Activity *>();
+    auto users = TimeBankSystem::getUsers();
+    for (auto user : users)
+    {
+        if (dynamic_cast<Admin *>(user) != nullptr)
+        {
+            continue;
+        }
+        Member *member = dynamic_cast<Member *>(user);
+        auto activities = member->getActivities();
+        for (auto activity : activities)
+        {
+            if (activity->getHostId().empty() && activity->getSupporterId() == getId())
+            {
+                supportActivites.push_back(activity);
+            }
+            else if (activity->getHostId().empty() && std::find_if(activity->getRequesters().begin(), activity->getRequesters().end(), [this](std::string id)
+                                                                   { return id == getId(); }) != activity->getRequesters().end())
+            {
+                hostActivities.push_back(activity);
+            }
+        }
+    }
+
+    std::cout << "Pending requests activities as Host: " << std::endl;
+    for (auto *activity : hostActivities)
+    {
+        std::cout << "----------------------" << std::endl;
+        std::cout << *activity << std::endl;
+    }
+    std::cout << "----------------------" << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << "Pending requests activities as Supporter: " << std::endl;
+    for (auto *activity : supportActivites)
+    {
+        std::cout << "----------------------" << std::endl;
+        std::cout << *activity << std::endl;
+    }
+    std::cout << "----------------------" << std::endl;
+}
+
+void Member::viewPreviousAcitivity()
+{
+    std::cout << "Previous activities: " << std::endl;
+    for (auto *activity : getActivities())
+    {
+        if (activity->getEndTime() < getCurrentTime() || activity->isActivityClosed() == 1)
+        {
+            std::cout << "----------------------" << std::endl;
+            std::cout << *activity << std::endl;
+            std::cout << "----------------------" << std::endl;
+        }
+    }
+}
+
+void Member::viewOtherUserProfile()
+{
+    auto users = TimeBankSystem::getUsers();
+    for (auto user : users)
+    {
+        if (dynamic_cast<Admin *>(user) != nullptr || user->getId() == getId() || std::find(blockedMembers.begin(), blockedMembers.end(), user->getId()) != blockedMembers.end())
+        {
+            continue;
+        }
+        Member *member = dynamic_cast<Member *>(user);
+        std::cout << "----------------------------------" << std::endl;
+        std::cout << *member << std::endl;
+        std::cout << "----------------------------------" << std::endl;
+    }
+}
+
+void Member::searchServices()
+{
+    try
+    {
+        std::string cityPatern;
+        std::cout << "Enter 'x' to select all time stamp or ";
+        std::time_t startTime = getTime();
+        std::cout << "Enter 'x' to select all time stamp or ";
+        std::time_t endTime = getTime();
+        if (startTime != -1 && endTime != -1 && (startTime > endTime))
+        {
+            throw std::invalid_argument("Start time must be earlier than end time");
+        }
+
+        std::cout << "Please enter the city: ";
+        std::getline(std::cin, cityPatern);
+        std::regex cityRegex(cityPatern, std::regex_constants::icase);
+        auto users = TimeBankSystem::getUsers();
+        for (auto user : users)
+        {
+            if (dynamic_cast<Admin *>(user) != nullptr || user->getId() == getId())
+            {
+                continue;
+            }
+            Member *member = dynamic_cast<Member *>(user);
+            auto activities = member->getActivities();
+            auto blockedMembers = member->getBlockedMembers();
+            if (std::find(blockedMembers.begin(), blockedMembers.end(), getId()) != blockedMembers.end())
+            {
+                continue;
+            }
+            for (auto activity : activities)
+            {
+                bool isHostEmpty = activity->getHostId().empty();
+                bool isWithinTime = (startTime == -1 && endTime == -1) ||
+                                    (startTime != -1 && startTime <= activity->getStartTime()) ||
+                                    (endTime != -1 && endTime >= activity->getEndTime()) ||
+                                    (startTime <= activity->getEndTime() && endTime >= activity->getStartTime());
+                bool isCityMatch = cityPatern.empty() || std::regex_search(activity->getCity(), cityRegex);
+                if (isHostEmpty && isWithinTime && isCityMatch)
+                {
+                    std::cout << "----------------------------------" << std::endl;
+                    std::cout << *activity << std::endl;
+                    std::cout << "----------------------------------" << std::endl;
+                }
+            }
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+        std::cout << "Search services failed" << std::endl;
+    }
+}
+
+void Member::cancelRequest()
+{
+    std::unordered_map<std::string, Activity *> mapActivities;
+    for (auto user : TimeBankSystem::getUsers())
+    {
+        if (dynamic_cast<Admin *>(user) != nullptr || user->getId() == getId())
+        {
+            continue;
+        }
+        Member *member = dynamic_cast<Member *>(user);
+        auto activities = member->getActivities();
+        for (auto activity : activities)
+        {
+            auto it = std::find(activity->getRequesters().begin(), activity->getRequesters().end(), getId());
+            if (activity->getHostId().empty() && it != activity->getRequesters().end())
+            {
+                std::cout << "----------------------------------" << std::endl;
+                std::cout << *activity << std::endl;
+                std::cout << "----------------------------------" << std::endl;
+                mapActivities[activity->getId()] = activity;
+            }
+        }
+    }
+
+    if (mapActivities.empty())
+    {
+        std::cout << "You have not requested any activity";
+        return;
+    }
+
+    std::cout << "Please enter the id of the activity you want to cancel request: " << std::endl;
+    std::string activityId;
+    std::getline(std::cin, activityId);
+    if (mapActivities.find(activityId) == mapActivities.end())
+    {
+        std::cout << "Activity not found" << std::endl;
+        std::cout << "Cancel request failed" << std::endl;
+        return;
+    }
+    Activity *activity = mapActivities[activityId];
+    activity->removeRequester(getId());
+    activities.erase(std::remove_if(activities.begin(), activities.end(), [activityId](Activity *activity)
+                                    {
+                                        return activity->getId() == activityId; // Added the return statement
+                                    }),
+                     activities.end());
+    std::cout << "Cancel request successful" << std::endl;
 }
 
 std::vector<Activity *> Member::getActivities()
@@ -383,12 +899,42 @@ void Member::setActivities(std::vector<Activity *> _activities)
     activities = _activities;
 }
 
+std::vector<std::string> Member::getSkills()
+{
+    return skills;
+}
+
+std::map<std::string, std::string> Member::getUserInfo()
+{
+    return userInfo;
+}
+
 std::ostream &operator<<(std::ostream &os, Member &user)
 {
-    os << "id: " << user.getId();
-    os << " userName: " << user.getUserName();
-    os << " skill: " << user.getSkillRatingScore();
-    os << " skill: " << user.getHostRatingScore();
-    os << " skill: " << user.getSupportRatingScore();
+    std::cout << "Username: " << user.getUserName() << std::endl;
+    std::cout << "Full name: " << user.userInfo["fullName"] << std::endl;
+    std::cout << "Phone number: " << user.userInfo["phoneNumber"] << std::endl;
+    std::cout << "Email: " << user.userInfo["email"] << std::endl;
+    std::cout << "City: " << user.userInfo["city"] << std::endl;
+    std::cout << "Skills: " << std::endl;
+    for (auto skill : user.getSkills())
+    {
+        if (!skill.empty())
+        {
+            std::cout << "\t" << skill << std::endl;
+        }
+    }
+    std::cout << "Skill rating score: " << user.skillRatingScore->getRatingScore() << std::endl;
+    std::cout << "Host rating score: " << user.hostRatingScore->getRatingScore() << std::endl;
+    std::cout << "Support rating score: " << user.supportRatingScore->getRatingScore() << std::endl;
+    std::cout << "Blocked members: " << std::endl;
+    std::cout << "Comments: " << std::endl;
+    for (auto comment : user.comments)
+    {
+        if (!comment.empty())
+        {
+            std::cout << "\t" << comment << std::endl;
+        }
+    }
     return os;
 }

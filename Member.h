@@ -35,6 +35,8 @@ public:
     int getCreditPoints();
     std::vector<Activity *> getActivities();
     std::vector<std::string> getBlockedMembers();
+    std::vector<std::string> getSkills();
+    void addActivity(Activity *activity);
     void setActivities(std::vector<Activity *> _activities);
     void setCreaditPoints(int points);
     bool addCreditPoints(int points);
@@ -47,6 +49,16 @@ public:
     bool listYourSelf();
     bool unListYourSelf();
     bool bookService();
+    bool confirmActivity();
+    bool feedbackActivity();
+    bool addCreditPoints();
+    void viewProfile();
+    void viewPendingRequest();
+    void viewPreviousAcitivity();
+    void viewOtherUserProfile();
+    void searchServices();
+    void cancelRequest();
+    std::map<std::string, std::string> getUserInfo();
     friend std::ostream &operator<<(std::ostream &os, Member &user);
 };
 

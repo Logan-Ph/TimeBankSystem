@@ -2,10 +2,10 @@
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 // // ------------------ This file for creating dummy user ----------------------------------------------------// // //
 // // ------------------ To run this file you need to comment all of the "main.cpp" file ----------------------// // //
-// // ------------------ Then uncomment all the followings below this section ---------------------------------// // //  
+// // ------------------ Then uncomment all the followings below this section ---------------------------------// // //
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
-
+#if 0
 #include <iostream>
 #include "User.h"
 #include "Functions.h"
@@ -15,17 +15,17 @@
 
 int main()
 {
-    // Admin *admin = new Admin("admin", "123");
-    // Member *member1 = new Member("user1", "123");
-    // Member *member2 = new Member("user2", "123");
-    // Member *member3 = new Member("user3", "123");
-    // Member *member4 = new Member("user4", "123");
-    // std::vector<User *> users = {admin, member1, member2, member3, member4};
-    // writeUsers(users, "users.bin");
+    Admin *admin = new Admin("admin", "123");
+    Member *member1 = new Member("user1", "123");
+    Member *member2 = new Member("user2", "123");
+    Member *member3 = new Member("user3", "123");
+    Member *member4 = new Member("user4", "123");
+    std::vector<User *> users = {admin, member1, member2, member3, member4};
+    writeUsers(users, "users.bin");
 
     std::vector<User *> newUsers = readUsers("users.bin");
     for (User *user : newUsers)
-    {   
+    {
 
         if (dynamic_cast<Admin *>(user) != nullptr)
         {
@@ -37,6 +37,5 @@ int main()
         }
         std::cout << *user << std::endl;
     }
-    // writeUsers(newUsers, "users.bin");
-
 }
+#endif
