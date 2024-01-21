@@ -54,8 +54,10 @@ public:
     bool addCreditPoints();
     void viewProfile();
     void viewPendingRequest();
+    void viewPreviousAcitivity();
     void viewOtherUserProfile();
     void searchServices();
+    void cancelRequest();
     std::map<std::string, std::string> getUserInfo();
     friend std::ostream &operator<<(std::ostream &os, Member &user);
 };

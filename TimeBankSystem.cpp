@@ -82,10 +82,27 @@ void TimeBankSystem::listUsersInfo()
 {
     for (auto *user : users)
     {
-        if (dynamic_cast<Member *>(user) != nullptr)
+        if (dynamic_cast<Admin *>(user) != nullptr)
         {
-            std::cout << *user << std::endl; // list all the users info
+            continue;
         }
+        Member *member = dynamic_cast<Member *>(user);
+        std::cout << "----------------------------------" << std::endl;
+        std::cout << "ID: " << member->getId() << std::endl;
+        std::cout << "Username: " << member->getUserName() << std::endl;
+        std::cout << "Full name: " << (member->getUserInfo())["fullName"] << std::endl;
+        std::cout << "Phone number: " << (member->getUserInfo())["phoneNumber"] << std::endl;
+        std::cout << "Email: " << (member->getUserInfo())["email"] << std::endl;
+        std::cout << "City: " << (member->getUserInfo())["city"] << std::endl;
+        std::cout << "Skills: " << std::endl;
+        for (auto skill : member->getSkills())
+        {
+            if (!skill.empty())
+            {
+                std::cout << "\t" << skill << std::endl;
+            }
+        }
+        std::cout << "----------------------------------" << std::endl;
     }
 }
 
@@ -167,29 +184,8 @@ void TimeBankSystem::guestDisplay()
             registerUser();
             break;
         case '2':
-            for (auto user : getUsers())
-            {
-                if (dynamic_cast<Admin *>(user) != nullptr)
-                {
-                    continue;
-                }
-                Member *member = dynamic_cast<Member *>(user);
-                std::cout << "----------------------------------" << std::endl;
-                std::cout << "Username: " << member->getUserName() << std::endl;
-                std::cout << "Full name: " << (member->getUserInfo())["fullName"] << std::endl;
-                std::cout << "Phone number: " << (member->getUserInfo())["phoneNumber"] << std::endl;
-                std::cout << "Email: " << (member->getUserInfo())["email"] << std::endl;
-                std::cout << "City: " << (member->getUserInfo())["city"] << std::endl;
-                std::cout << "Skills: " << std::endl;
-                for (auto skill : member->getSkills())
-                {
-                    if (!skill.empty())
-                    {
-                        std::cout << "\t" << skill << std::endl;
-                    }
-                }
-                std::cout << "----------------------------------" << std::endl;
-            }
+            listUsersInfo();
+            break;
         case 'x':
         default:
             break;
@@ -250,7 +246,9 @@ void TimeBankSystem::memberDisplay(Member *member)
             std::cout << "9. Block members" << std::endl;
             std::cout << "10. Unblock members" << std::endl;
             std::cout << "11. View your pending request" << std::endl;
-            std::cout << "12. View other user profile" << std::endl;
+            std::cout << "12. View your previous activity" << std::endl;
+            std::cout << "13. View other user profile" << std::endl;
+            std::cout << "14. Cancel request" << std::endl;
             std::cout << "x. Exit" << std::endl;
             std::cout << "Please enter your choice: ";
             std::getline(std::cin, choice);
@@ -309,7 +307,13 @@ void TimeBankSystem::memberDisplay(Member *member)
                 member->viewPendingRequest();
                 break;
             case 12:
+                member->viewPreviousAcitivity();
+                break;
+            case 13:
                 member->viewOtherUserProfile();
+                break;
+            case 14:
+                member->cancelRequest();
                 break;
             default:
                 std::cout << "Please enter a valid choice" << std::endl;
